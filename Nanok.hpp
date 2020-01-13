@@ -15,21 +15,31 @@ using namespace std;
  */
 class Nanok {
 public:
-    Nanok();
+    Nanok(const char *fileName = NULL);
     virtual ~Nanok();
+    void run();
 private:
     //Текст
-    char **text;
-    int *strLens, strCount;
+    string *text;
+    int strCount;
     void increaseTextSize();
-    void increaseStringSize(int str);
     //Работа с консолью
     HANDLE hWndConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     int ix = 0, iy = 0; //Текущая позиция курсора в строке
+    void print();//Выводит в терминал текст страницы
     int getConsoleWidth();
     int getConsoleHeight();
-    void print();//Выводит в терминал текст страницы
+    //Работа с файлами
+    const char* fileName;
+    void open();
+    void saveAs();
+    void save();
     //Текстовый редактор
+    void insertChar(const char character);
+    void toUp();
+    void toDown();
+    void toLeft();
+    void toRight();
     void pageDown(); //Курсор на страницу вниз
     void pageUp(); //Курсор на страницу вверх
     void toStrStart();//Курсор в начало строки

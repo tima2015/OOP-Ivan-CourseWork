@@ -1,8 +1,8 @@
 #include <iostream>
-#include "coniow.h"
+#include "Nanok.hpp"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-    getch();
+    Nanok nanok("testText.txt");
+    nanok.run();
     return 0;
 }
