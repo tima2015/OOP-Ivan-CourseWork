@@ -27,6 +27,7 @@ private:
     HANDLE hWndConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     int ix = 0, iy = 0; //Текущая позиция курсора в строке
     void print();//Выводит в терминал текст страницы
+    void printLine();
     int getConsoleWidth();
     int getConsoleHeight();
     //Работа с файлами
@@ -36,6 +37,7 @@ private:
     void save();
     //Текстовый редактор
     void insertChar(const char character);
+    void deleteChar();
     void toUp();
     void toDown();
     void toLeft();
