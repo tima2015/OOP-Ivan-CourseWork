@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.14)
 project(ivan)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(ivan main.cpp Nanok.cpp Nanok.hpp)
+add_executable(ivan main.cpp Nanok.cpp Nanok.hpp coniow.c coniow.h keys_n_colors.h)

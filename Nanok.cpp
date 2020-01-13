@@ -1,138 +1,50 @@
+#include <string>
 #include "Nanok.hpp"
 
-int Nanok::getTextIndexForPage(int page) {
-    int width = getConsoleWidth(), height = getConsoleHeight();
-    for (int i = 0, strLen = 0, strN = 0; i < text.size(); ++i) {
-        if (text.at(i) == '\n'){
-            strLen = 0;
-            strN++;
-        } else if (strLen == width){
-            strLen = 0;
-            strN++;
-        }
-        if (strN / height == page)
-            return i;
+#define INITAL_SIZE 2
+#define DEGREE_OF_INCREASE 2
+
+Nanok::Nanok() : strCount(INITAL_SIZE) {
+    strLens = new int[strCount];
+    for (int i = 0; i < strCount; ++i) {
+        strLens[i] = INITAL_SIZE;
     }
-    return 0;
+    increaseTextSize();
 }
 
-int Nanok::strCount() {
-    int width = getConsoleWidth(), strN = 0;
-    for (int i = 0, strLen = 0; i < text.size(); ++i) {
-        if (text.at(i) == '\n'){
-            strLen = 0;
-            strN++;
-        } else if (strLen == width){
-            strLen = 0;
-            strN++;
-        }
-        if (strN / height == page)
-            return i;
+Nanok::~Nanok() {
+    delete[] strLens;
+    for (int i = 0; i < strCount; ++i) {
+        delete[] text[i];
     }
-    return strN;
+    delete[] text;
 }
 
-int Nanok::pageCount() {
-    return strCount()/getConsoleHeight()+1;
-}
-
-void Nanok::printPage(int page) {
-    int width = getConsoleWidth(), height = getConsoleHeight();
-    clrscr();
-    for (int y = 0, i = getTextIndexForPage(page); y < height; y++)
-        for (int x = 0; x < width; x++, i++) {
-            if(i >= text.size())
-                return;
-            char c = text.at(i);
-            switch (c){
-                case '\n':
-                    putch(c);
-                    ++y;
-                    if(y == height)
-                        return;
-                    gotoxy(x,y);
-                    break;
-                default:
-                    putch(c);
-            }
+void Nanok::increaseTextSize() {
+    if(text == NULL){
+        text = new char*[strCount];
+        for (int i = 0; i < strCount; ++i) {
+            increaseStringSize(i);
         }
-}
-
-void Nanok::pageDown() {
-    printPage(++page);
-    gotoxy(0,0);
-}
-
-void Nanok::pageUp() {
-    printPage(--page);
-    gotoxy(0,0);
-}
-
-void Nanok::toStrStart() {
-    gotoxy(0, wherey());
-}
-
-void Nanok::toStrEnd() {
-    gotoxy(getConsoleWidth(),wherey());
-}
-
-void Nanok::toNextWord() {
-    int width = getConsoleWidth(),
-    height = getConsoleHeight();
-
-    for (int y = wherey(); y < height; ++y)
-        for (int x = wherex() + 1; x < width; ++x) {
-            if (getCharFromConsole(x, y) == ' ') {
-                gotoxy(x, y);
-                return;
-            }
-            if (getCharFromConsole(x, y) == '\n'){
-                gotoxy(x = 0,++y);
-                return;
-            }
-        }
-}
-
-void Nanok::toPreWord() {
-    int width = getConsoleWidth(),
-            height = getConsoleHeight();
-
-    for (int y = wherey(); y >= 0; --y)
-        for (int x = wherex() + 1; x >= 0; --x) {
-            if (getCharFromConsole(x, y) == ' ') {
-                gotoxy(x, y);
-                return;
-            }
-            if (x == 0){
-                gotoxy(x = width-1,--y);
-                return;
-            }
-        }
-}
-
-void Nanok::toTextStart() {
-    printPage(page = 0);
-    gotoxy(0,0);
-}
-
-void Nanok::toTextEnd() {
-    printPage(page = pageCount()-1);
-    gotoxy(0,0);
-}
-
-
-
-char Nanok::getCharFromConsole(int x, int y) {
-    if (hWndConsole){
-        CHAR_INFO info;
-        COORD coord;
-        SMALL_RECT sr;
-        coord.X = sr.Left = sr.Right = x;
-        coord.Y = sr.Top = sr.Bottom = y;
-        ReadConsoleOutput(hWndConsole, &info,coord, coord, sr);
-        return info.AsciiChar;
+        return;
     }
-    throw "Cant get character from console!";
+    char **buffer = new char*[strCount*DEGREE_OF_INCREASE];
+    for (int i = 0; i < strCount; ++i) {
+        buffer[i] = text[i];
+    }
+}
+
+void Nanok::increaseStringSize(int str) {
+    if(text[str] == NULL){
+        text[str] = new char[INITAL_SIZE];
+        return;
+    }
+    char *buffer = new char[strLens[str]*DEGREE_OF_INCREASE];
+    for (int i = 0; i < strLens[str]; ++i) {
+        buffer[i] = text[str][i];
+    }
+    delete[] text[str];
+    text[str] = buffer;
 }
 
 int Nanok::getConsoleWidth() {
@@ -151,4 +63,12 @@ int Nanok::getConsoleHeight() {
             return consoleInfo.srWindow.Bottom - consoleInfo.srWindow.Top + 1;
     }
     throw "Cant get console height!";
+}
+
+void Nanok::print() {
+    clrscr();
+    for (int i = 0; i < strCount; ++i) {
+        cputs(text[i]);
+        
+    }
 }

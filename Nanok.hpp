@@ -16,13 +16,20 @@ using namespace std;
 class Nanok {
 public:
     Nanok();
+    virtual ~Nanok();
 private:
-    string text, buffer;
-    int page = 0; //Текущая страница
-    int getTextIndexForPage(int page);//Возращает индекс для строки текста с которого нужно начать отрисовку текущей страницы. 0 если страница одна
-    int pageCount();
-    int strCount();
-    void printPage(int page);//Выводит в терминал текст страницы
+    //Текст
+    char **text;
+    int *strLens, strCount;
+    void increaseTextSize();
+    void increaseStringSize(int str);
+    //Работа с консолью
+    HANDLE hWndConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    int ix = 0, iy = 0; //Текущая позиция курсора в строке
+    int getConsoleWidth();
+    int getConsoleHeight();
+    void print();//Выводит в терминал текст страницы
+    //Текстовый редактор
     void pageDown(); //Курсор на страницу вниз
     void pageUp(); //Курсор на страницу вверх
     void toStrStart();//Курсор в начало строки
@@ -31,13 +38,6 @@ private:
     void toPreWord();//На слово назад
     void toTextStart();//В начало текста
     void toTextEnd();//В конец текста
-
-
-    //Методы информации о терминале
-    HANDLE hWndConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    char getCharFromConsole(int x, int y);
-    int getConsoleWidth();
-    int getConsoleHeight();
 };
 
 #endif //IVAN_NANOK_HPP
