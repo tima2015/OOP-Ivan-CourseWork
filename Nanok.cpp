@@ -1,6 +1,6 @@
-#include <string>
 #include <fstream>
 #include <iostream>
+#include "coniow.h"
 #include "Nanok.hpp"
 
 #define INITAL_SIZE 2
@@ -8,12 +8,20 @@
 #define FILE_READ_ERROR "Can't read this file"
 #define FILE_WRITE_ERROR "Can't write this file"
 
+#define HOME 71
+#define END 79
 #define LEFT 75
 #define RIGHT 77
 #define UP 72
 #define DOWN 80
 #define BACKSPACE 8
 #define ENTER 13
+#define DEL 83
+#define CTRL_STATE 8
+#define ALT_STATE 2
+#define SPACE 32
+#define BACKSLASH 92
+#define SLASH 47
 
 using namespace std;
 
@@ -34,9 +42,32 @@ void Nanok::run() {
     gotoxy(1,1);
     while (true) {
         keycode = getch();
-        if (keycode == 0) {
+        if (_controlkeystate == CTRL_STATE){
+            getch();
             keycode = getch();
+            switch (keycode){
+            }
+        } else if (_controlkeystate == ALT_STATE){
+            getch();
+            keycode = getch();
+            switch (keycode){
+                case BACKSLASH:
+                    toTextStart();
+                    break;
+                case SLASH:
+                    toTextEnd();
+                    break;
+            }
+        } else if (keycode == 0) {
+            keycode = getch();
+            //cout << keycode;
             switch (keycode) {
+                case HOME:
+                    toStrStart();
+                    break;
+                case END:
+                    toStrEnd();
+                    break;
                 case LEFT:
                     toLeft();
                     break;
@@ -49,11 +80,20 @@ void Nanok::run() {
                 case DOWN:
                     toDown();
                     break;
+                case DEL:
+                    del();
+                    break;
             }
         } else
             switch (keycode) {
                 case KEY_ESC:
                     return;
+            case KEY_BACKSPACE:
+                backspace();
+                break;
+            case KEY_ENTER:
+                enter();
+                break;
                 default:
                     insertChar(keycode);
             }
@@ -78,15 +118,6 @@ int Nanok::getConsoleWidth() {
             return consoleInfo.srWindow.Right - consoleInfo.srWindow.Left + 1;
     }
     throw "Cant get console width!";
-}
-
-int Nanok::getConsoleHeight() {
-    if (hWndConsole) {
-        CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
-        if (GetConsoleScreenBufferInfo(hWndConsole, &consoleInfo))
-            return consoleInfo.srWindow.Bottom - consoleInfo.srWindow.Top + 1;
-    }
-    throw "Cant get console height!";
 }
 
 void Nanok::open() {
@@ -150,9 +181,7 @@ void Nanok::insertChar(const char character) {
         printLine();
     } else {
         string p1 = text[iy].substr(0, ix), p2 = text[iy].substr(ix, text[iy].length() - 1);
-        text[iy] = p1;
-        text[iy] += character;
-        text[iy] += p2;
+        text[iy] = p1 + character + p2;
         ix++;
         gotoxy(wherex()+1,wherey());
         printLine();
@@ -161,17 +190,84 @@ void Nanok::insertChar(const char character) {
         print();
 }
 
-void Nanok::deleteChar() {
+void Nanok::backspace() {
     if (ix == 0){
         if (iy == 0)
             return;
+        int bx = text[iy-1].length()%getConsoleWidth(), by = wherey() - 1;
+        ix = text[iy-1].length();
         text[iy-1] += text[iy];
-        text[iy].clear();
         for (int i = iy + 1; i < strCount; ++i) {
             text[i-1] = text[i];
             if (text[i].length() == 0)
                 break;
         }
+        iy--;
+        gotoxy(bx,by);
+        print();
+    } else if (ix == text[iy].length()) {
+        text[iy] = text[iy].substr(0, text[iy].length()-1);
+        --ix;
+        gotoxy(wherex()-1,wherey());
+        printLine();
+    } else {
+        string p1 = text[iy].substr(0, ix-1), p2 = text[iy].substr(ix, text[iy].length() - 1);
+        text[iy] = p1 + p2;
+        ix--;
+        gotoxy(wherex()-1,wherey());
+        printLine();
+    }
+}
+
+void Nanok::enter() {
+    int by = wherey();
+    if (text[strCount-1].length() != 0)
+        increaseTextSize();
+    if (ix == 0){
+        for (int i = strCount - 1; i > iy; --i) {
+            text[i] = text[i-1];
+        }
+        text[iy].clear();
+        text[iy] = " ";
+        print();
+        gotoxy(1,by+1);
+    } else if (ix == text[iy].length()){
+        for (int i = strCount - 1; i > iy; --i) {
+            text[i] = text[i-1];
+        }
+        text[iy+1].clear();
+        text[iy+1] = " ";
+        print();
+        gotoxy(1,by+1);
+    } else {
+        string p1 = text[iy].substr(0,ix), p2 = text[iy].substr(ix, text[iy].length()-1);
+        text[iy] = p1;
+        for (int i = strCount - 1; i > iy; --i) {
+            text[i] = text[i-1];
+        }
+        text[iy+1] = p2;
+        print();
+        gotoxy(1,by+1);
+    }
+    ix = 0;
+    iy++;
+}
+
+void Nanok::del() {
+    int bx = text[iy-1].length()%getConsoleWidth(), by = wherey() - 1;
+    if (ix == text[iy].length()){
+        text[iy] += text[iy+1];
+        for (int i = iy + 2; i < strCount; ++i) {
+            text[i-1] = text[i];
+            if (text[i].length() == 0)
+                break;
+        }
+        print();
+        gotoxy(bx,by);
+    } else {
+        text[iy] = text[iy].substr(0, ix) + text[iy].substr(ix+1, text[iy].length());
+        printLine();
+        gotoxy(bx,by);
     }
 }
 
@@ -251,6 +347,31 @@ void Nanok::toRight() {
     } else {
         ++ix;
         gotoxy(wherex() + 1, wherey());
+    }
+}
+
+void Nanok::toStrStart() {
+    gotoxy(1,wherey()-ix/getConsoleWidth());
+    ix = 0;
+}
+
+void Nanok::toStrEnd() {
+    int width = getConsoleWidth();
+    gotoxy(text[iy].length()%width+1, wherey() + (text[iy].length()/width - ix/width));
+    ix = text[iy].length();
+}
+
+void Nanok::toTextStart() {
+    ix = iy = 0;
+    gotoxy(1,1);
+}
+
+void Nanok::toTextEnd() {
+    for (int i = iy; i < strCount; ++i) {
+        toStrEnd();
+        if (text[i+1].length() == 0)
+            return;
+        toRight();
     }
 }
 
