@@ -1,8 +1,5 @@
-#include <iostream>
 #include "Nanok.hpp"
 
-int main() {
-    Nanok nanok("testText.txt");
-    nanok.run();
-    return 0;
+int main(int argc, char *argv[]) {
+    Nanok(argc == 0 ? nullptr : argv[0]);
 }

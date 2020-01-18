@@ -3,4 +3,4 @@ project(ivan)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(ivan main.cpp Nanok.cpp Nanok.hpp coniow.c coniow.h keys_n_colors.h)
+add_executable(ivan main.cpp Nanok.cpp Nanok.hpp)
